@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AudioVitality — AI Automation System Map</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#cbd5e1;
+    --hub:#1e293b; --hubaccent:#6366f1;
+    --low:#16a34a; --med:#d97706; --high:#dc2626; --ext:#64748b; --queue:#0891b2;
+    --edge-write:#4f46e5; --edge-read:#94a3b8; --edge-feed:#0d9488; --edge-human:#d97706; --edge-flag:#e11d48;
+    --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 18px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    -webkit-text-size-adjust:100%;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;}
+  /* Embed-friendly: the page scrolls inside Canva's iframe; a wide landscape embed box shows the most. */
+  header.top{padding:22px 28px 14px;}
+  header.top h1{margin:0;font-size:22px;letter-spacing:-.2px;}
+  header.top p{margin:5px 0 0;color:var(--muted);font-size:13.5px;max-width:980px;line-height:1.5;}
+  .bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:6px 28px 14px;}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;}
+  .filters button{border:1px solid var(--line);background:#fff;color:var(--ink);
+    padding:6px 12px;border-radius:999px;font-size:12.5px;cursor:pointer;transition:.15s;}
+  .filters button:hover{border-color:#94a3b8;}
+  .filters button.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto;}
+  .legend .li{display:flex;align-items:center;gap:6px;}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
+  .lstroke{width:22px;height:0;border-top:3px solid;display:inline-block;}
+
+  .stage{position:relative;overflow:auto;padding:6px 28px 40px;}
+  #canvas{position:relative;min-width:1180px;}
+  #edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+  .cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,1fr);gap:30px;}
+  .col h2{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
+    margin:0 0 12px;font-weight:700;border-bottom:1px solid var(--line);padding-bottom:7px;}
+  .col{display:flex;flex-direction:column;gap:16px;}
+
+  .node{position:relative;background:var(--panel);border:1px solid var(--line);
+    border-left:5px solid var(--ext);border-radius:11px;padding:11px 12px 12px;
+    box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,box-shadow .12s,opacity .15s;}
+  .node:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,23,42,.14);}
+  .node .tid{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--muted);}
+  .node .nm{font-size:13.5px;font-weight:700;line-height:1.25;margin-top:2px;}
+  .node .role{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.35;}
+  .node .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+  .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.3px;}
+  .b-low{background:#dcfce7;color:#15803d;} .b-med{background:#fef3c7;color:#b45309;}
+  .b-high{background:#fee2e2;color:#b91c1c;} .b-ext{background:#e2e8f0;color:#475569;}
+  .b-gate{background:#ffedd5;color:#c2410c;}
+  .node.low{border-left-color:var(--low);} .node.med{border-left-color:var(--med);}
+  .node.high{border-left-color:var(--high);} .node.ext{border-left-color:var(--ext);}
+  .node.hub{border-left-color:var(--hubaccent);background:linear-gradient(180deg,#1e293b,#0f172a);color:#fff;}
+  .node.hub .tid,.node.hub .role{color:#cbd5e1;} .node.hub .nm{color:#fff;}
+  .node.queue{border-left-color:var(--queue);background:#ecfeff;}
+  .node.src{background:#f8fafc;border-style:dashed;}
+  .node.src .nm{font-size:12.5px;}
+  .chips{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+  .chip{font-size:10px;background:rgba(255,255,255,.14);color:#e2e8f0;border:1px solid rgba(255,255,255,.25);
+    padding:2px 7px;border-radius:6px;}
+  .node.dim{opacity:.22;filter:saturate(.4);}
+  .node.hl{box-shadow:0 0 0 3px var(--hubaccent),0 10px 26px rgba(15,23,42,.18);}
+
+  /* detail drawer */
+  #drawer{position:fixed;top:0;right:0;height:100%;width:380px;max-width:92vw;background:#fff;
+    box-shadow:-12px 0 40px rgba(15,23,42,.18);transform:translateX(100%);transition:transform .25s;
+    z-index:50;display:flex;flex-direction:column;}
+  #drawer.open{transform:translateX(0);}
+  #drawer .dh{padding:18px 20px 14px;border-bottom:1px solid var(--line);}
+  #drawer .dh .tid{font-size:12px;font-weight:800;color:var(--muted);}
+  #drawer .dh h3{margin:3px 0 0;font-size:18px;}
+  #drawer .db{padding:16px 20px;overflow:auto;font-size:13px;line-height:1.55;}
+  #drawer .db .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    font-weight:700;margin:14px 0 4px;}
+  #drawer .db .k:first-child{margin-top:0;}
+  #drawer .db ul{margin:4px 0 0;padding-left:18px;} #drawer .db li{margin:2px 0;}
+  #drawer .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  #drawer .pill{font-size:11px;background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:3px 9px;}
+  #drawer .close{position:absolute;top:14px;right:16px;border:none;background:#f1f5f9;border-radius:8px;
+    width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted);}
+  .hint{padding:4px 28px 0;color:var(--muted);font-size:12px;}
+  .foot{padding:14px 28px 30px;color:var(--muted);font-size:11.5px;line-height:1.5;border-top:1px solid var(--line);margin-top:8px;}
+  .edge-label{font:600 10px -apple-system,Segoe UI,sans-serif;fill:#475569;}
+  .edge-label-bg{fill:#f4f6fb;opacity:.92;}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>AudioVitality — AI Automation System Map</h1>
+  <p>How the 12 automations (T1–T17) work together. Everything writes through <b>T1</b>, the single source of truth (Folk ⇄ Notion, orchestrated in n8n). <b>T15</b> guards data quality; exceptions land in a shared human-review queue. Click any tool for detail; hover to trace its connections.</p>
+</header>
+
+<div class="bar">
+  <div class="filters" id="filters">
+    <button data-f="all" class="active">All</button>
+    <button data-f="p1">Phase 1 · Foundation</button>
+    <button data-f="p2">Phase 2 · Client-facing</button>
+    <button data-f="p3">Phase 3 · Intelligence</button>
+    <span style="width:10px"></span>
+    <button data-f="low">Low · autonomous</button>
+    <button data-f="med">Medium · human-approves</button>
+    <button data-f="high">High · human-led</button>
+  </div>
+  <div class="legend">
+    <span class="li"><span class="dot" style="background:var(--low)"></span>Low</span>
+    <span class="li"><span class="dot" style="background:var(--med)"></span>Medium</span>
+    <span class="li"><span class="dot" style="background:var(--high)"></span>High</span>
+    <span class="li"><span class="dot" style="background:var(--ext)"></span>External</span>
+    <span class="li"><span class="lstroke" style="border-color:var(--edge-write)"></span>writes</span>
+    <span class="li"><span class="lstroke" style="border-color:var(--edge-read);border-top-style:dashed"></span>reads</span>
+    <span class="li"><span class="lstroke" style="border-color:var(--edge-feed)"></span>feeds</span>
+    <span class="li"><span class="lstroke" style="border-color:var(--edge-flag)"></span>flags</span>
+    <span class="li"><span class="lstroke" style="border-color:var(--edge-human)"></span>human gate</span>
+  </div>
+</div>
+<div class="hint">n8n is the orchestration engine for every workflow shown. Folk + Notion are the data stores, unified by T1. &nbsp;·&nbsp; <i>Scroll to explore; for the full layout view this on a wide / landscape embed or <a href="./index.html" target="_blank" rel="noopener" style="color:var(--hubaccent);font-style:normal;font-weight:600;">open in a new tab&nbsp;↗</a>.</i></div>
+
+<div class="stage">
+  <div id="canvas">
+    <svg id="edges"></svg>
+    <div class="cols" id="cols"></div>
+  </div>
+</div>
+
+<div class="foot" id="foot"></div>
+
+<div id="drawer">
+  <div class="dh"><span class="tid" id="d-tid"></span><h3 id="d-name"></h3>
+    <div class="meta" id="d-meta"></div>
+    <button class="close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="db" id="d-body"></div>
+</div>
+
+<script>
+// ---------- DATA (synthesized from the T1–T17 build guides, verified 2026-06-03) ----------
+const NODES = {
+  // external sources
+  src_mtg:{col:0,tier:"ext",tid:"INPUT",name:"Meetings & calls",role:"Notion AI Meeting Notes (Pattern A capture)",kind:"src"},
+  src_enr:{col:0,tier:"ext",tid:"INPUT",name:"Enrichment provider",role:"Apollo / People Data Labs (firmographics + contacts)",kind:"src"},
+  src_partner:{col:0,tier:"ext",tid:"INPUT",name:"Partner systems",role:"700 studios — PMS API · AV portal/form · monthly CSV",kind:"src"},
+  src_news:{col:0,tier:"ext",tid:"INPUT",name:"News & web",role:"Google Alerts RSS · news API · Firecrawl",kind:"src"},
+  src_roi:{col:0,tier:"ext",tid:"INPUT",name:"ROI Model (Deliverable #6)",role:"Signed dual-sided partner ROI workbook",kind:"src"},
+  src_corpus:{col:0,tier:"ext",tid:"INPUT",name:"Knowledge corpus",role:"AV Academy modules · protocol menu · studio specs · ops SOPs",kind:"src"},
+
+  // capture & inflow
+  T2:{col:1,tier:"med",tid:"T2",name:"Meeting → CRM auto-logging",role:"Transcript → structured CRM fields via LLM",
+      phase:["p1"],trigger:"New meeting transcript (Notion AI Notes / Fireflies)",
+      inputs:["Meeting/call transcript or AI summary"],
+      outputs:["Attendees, vertical, deal stage, objections, next action — written through T1","Uncertain extractions → human-review queue"],
+      tierNote:"Medium→Low lifecycle: human-review queue at launch; relaxes to autonomous only once the eval gate passes. Named-quote/attribution stays gated.",
+      cost:"€0–40/mo",effort:"3–4 person-days (on top of T1)",
+      eval:"≥90% field accuracy on a labelled call set",
+      deps:["Writes through T1 (never both systems)","Shares the human-review queue with T3/T15"]},
+  T3:{col:1,tier:"low",tid:"T3",name:"Auto-refresh / enrichment",role:"Fills firmographics + contacts, scores match confidence",
+      phase:["p1"],trigger:"New/changed company or partner record (Folk webhook) + scheduled refresh",
+      inputs:["Partner/company record","Enrichment provider match"],
+      outputs:["Auto-write back ≥ confidence threshold (through T1)","Below threshold → T15 review queue"],
+      tierNote:"Low only above the confidence threshold; never overwrites a human-entered value blindly — fills blanks / refreshes stale.",
+      cost:"€0–120/mo",effort:"~1 person-week",
+      eval:"≥95% correct-entity attachment",
+      deps:["Writes through T1","Low-confidence matches share the T15 queue","GDPR legitimate-interest sign-off required"]},
+  T12:{col:1,tier:"med",tid:"T12",name:"Partner usage / session-data ingestion",role:"Receives usage data from the partner network",
+      phase:["p1","p2"],trigger:"Partner sends usage data (API poll · portal submit · monthly CSV)",
+      inputs:["Per-site session counts, utilisation, billable sessions","Optional pseudonymised outcome aggregates"],
+      outputs:["Canonical usage records → Notion (T1)","Feeds royalty reconciliation, T10 KPI reviews, T16 ROI validation, T5 dashboards"],
+      tierNote:"Medium — inbound third-party personal data. AV is the receiver, never the booking actor. Aggregates only, no client PII.",
+      cost:"€0–25/mo",effort:"~1–1.5 person-weeks",
+      eval:"100% of received records normalised + quality-guarded before they reach reporting",
+      deps:["Lands in T1; quality-guarded by T15","Requires a signed data-sharing clause (pairs with T6)"]},
+  T17:{col:1,tier:"med",tid:"T17",name:"Competitor watch",role:"Watches ~25 competitors, summarises quoting sources only",
+      phase:["p2","p3"],trigger:"Scheduled gather (monthly cadence)",
+      inputs:["Google Alerts RSS / news API / Firecrawl on named competitors"],
+      outputs:["De-duplicated, source-quoted summaries → weekly human digest"],
+      tierNote:"Quote-sources-only; human reviews the digest. Cross-checks Folk first so a partner isn't misflagged as a competitor.",
+      cost:"€0–475/mo (provider-dominated)",effort:"3–5 person-days",
+      eval:"No partner misclassified as a competitor; every claim carries a source",
+      deps:["Cross-checks the Folk partner list (T1)","Flags to a human digest"]},
+
+  // core hub
+  T1:{col:2,tier:"hub",tid:"T1",name:"Single source of truth",role:"Folk ⇄ Notion two-way sync (per-field ownership + sync ledger)",
+      phase:["p1"],trigger:"Folk webhooks + Notion poll + nightly reconcile",
+      inputs:["Every other tool writes here","Folk people/companies · Notion contacts/studios DBs"],
+      outputs:["The canonical record every tool reads/writes through","Echo-loop-safe sync via the ledger"],
+      tierNote:"Low / autonomous. The foundation — build this first. Consolidate-then-sync, because Folk has no updatedAt field.",
+      cost:"€0–25/mo",effort:"~1–1.5 person-weeks",
+      eval:"0 echo loops; per-field ownership upheld on a labelled reconcile set",
+      deps:["§0 blocker: freeze the per-field source-of-truth map before any sync","Everything depends on T1"]},
+  T15:{col:2,tier:"low",tid:"T15",name:"Data-quality guard",role:"Scans T1: dedup · missing fields · ranges · staleness · anomalies",
+      phase:["p1"],trigger:"Scheduled nightly scan over T1",
+      inputs:["The full source of record (Folk + Notion via T1)"],
+      outputs:["Auto-fix only an allowlisted safe class (exact dups, format normalisation)","Everything judgemental → the human-review queue"],
+      tierNote:"Low. Hard invariant: never auto-merges on a fuzzy match — only byte-exact keys. Freeze the auto-fix allowlist before it writes.",
+      cost:"€0–25/mo",effort:"~3–4 person-days (ships with T1)",
+      eval:"Catches ≥95% of seeded bad records at <5% false positives; 0 unsafe auto-fixes",
+      deps:["Reads + writes through T1","Owns the shared review queue for T2/T3"]},
+  QUEUE:{col:2,tier:"queue",tid:"QUEUE",name:"Human-review & flag queue",role:"Where exceptions land for a person to clear",
+      kind:"queue",
+      tierNote:"The shared exception queue. T2 uncertain extractions, T3 low-confidence matches, and T15 flags all surface here. This is what lets the team check exceptions, not everything.",
+      role2:true,
+      deps:["Fed by T2, T3, T15","T17 flags to its own weekly digest"]},
+
+  // orchestration
+  T6:{col:3,tier:"med",tid:"T6",name:"Partner onboarding orchestration",role:"State machine over the intake → activation journey",
+      phase:["p2"],trigger:"New partner (intake form / Folk deal)",
+      inputs:["The agreed onboarding process (stages, tasks, owners, exit criteria)"],
+      outputs:["Creates tasks + owners + reminders in Notion","Gates each stage; outbound steps go through T4"],
+      tierNote:"Medium. Internal steps auto; every outbound (partner email, contract) is human-approved via T4. §0 blocker: document the canonical process first.",
+      cost:"€0–25/mo",effort:"~1–1.5 person-weeks",
+      eval:"Every partner's stage queryable; no stage advances before exit criteria met",
+      deps:["Holds stage state in T1","Routes outbound through T4 (human-approved)","Shares the orchestration pattern with T10"]},
+  T10:{col:3,tier:"med",tid:"T10",name:"Studio-launch runbook",role:"Drives a studio from site-identified to launched & reviewed",
+      phase:["p1","p2"],trigger:"New launch instance (site identified)",
+      inputs:["Signed Deliverable #5 config: 7-phase × 4-pillar matrix, gates, owners, KPIs","T12 usage data for KPI reviews"],
+      outputs:["Per-phase tasks, owners, reminders, sign-off gates in T1","M3/M6/M12 KPI reviews"],
+      tierNote:"Human sign-off gate at each phase (incl. regulatory hard-stops for Tinnitus). Config-driven so a #5 revision is a config edit, not a rebuild.",
+      cost:"€0–25/mo",effort:"~1.5–2 person-weeks + a live pilot",
+      eval:"A pilot launch runs end-to-end through every gate with no manual workaround",
+      deps:["Holds launch state in T1","Consumes T12 usage for KPI reviews","Same engine as T6"]},
+
+  // client-facing
+  T4:{col:4,tier:"med",tid:"T4",name:"Outreach & comms drafting",role:"Drafts outreach, follow-ups, inbound replies in AV's voice",
+      phase:["p2"],trigger:"New lead / stage change · follow-up due · inbound message",
+      inputs:["CRM context from T1","Voice/templates skill"],
+      outputs:["Drafts into a review queue — a human approves, then a separate step sends","Logs the sent message back through T1"],
+      tierNote:"Medium. No autonomous send, ever. Hard no's: no pricing quotes, no clinical claims, no contractual commitments in an AI draft.",
+      cost:"€0–22/mo",effort:"~3–5 person-days (on a live T1)",
+      eval:"0 autonomous sends; human approves 100% of outbound",
+      deps:["Reads context from T1, logs sent msgs back to T1","Is the outbound path for T6","Absorbs former T7 follow-ups + T11 inbound triage"]},
+  T16:{col:4,tier:"high",tid:"T16",name:"Partner ROI workbook",role:"Per-partner interactive Excel from the signed ROI model",
+      phase:["p2","p3"],trigger:"On request for a prospective partner",
+      inputs:["Signed ROI Model #6 (read-only, via a partner-safe Partner_Output tab)","T12 usage data validates assumptions"],
+      outputs:["A partner-safe workbook the partner can tweak (utilisation, price, lease vs buy)","Stops at a mandatory human gate before a human sends it"],
+      tierNote:"High — most confidentiality-sensitive. Only partner-side, Olivier-cleared fields render; AV-internal economics are structurally absent. Human gate never relaxes.",
+      cost:"€0–10/mo",effort:"~1–1.5 person-weeks",
+      eval:"0 internal-only fields ever render; every figure traces to the signed model version",
+      deps:["Reads the signed ROI Model #6","Validated against T12 usage","Permanent human approve + human send gate"]},
+
+  // read & intelligence
+  T5:{col:5,tier:"low",tid:"T5",name:"Reporting & dashboards",role:"Pipeline / KPI / usage dashboards + scheduled digests",
+      phase:["p1"],trigger:"Scheduled extract over T1",
+      inputs:["The single source of record (T1)","T12 usage data"],
+      outputs:["Dashboards (Metabase over a Postgres mirror) + email digests"],
+      tierNote:"Low. Reads, never writes the source of record. Lock metric definitions with the team — a silently-wrong definition is the main failure mode.",
+      cost:"€0–95/mo",effort:"~1 person-week (after T1)",
+      eval:"Every figure reconciles to T1; 'data as of' stamp on every view",
+      deps:["Reads T1 (never writes)","Consumes T12 usage data"]},
+  T13:{col:5,tier:"high",tid:"T13",name:"Operator knowledge assistant (RAG)",role:"Cited Q&A over ops SOPs; quote-only on safety",
+      phase:["p1","p2"],trigger:"Operator asks a question",
+      inputs:["Curated corpus: Academy modules, protocol menu, studio specs, ops SOPs"],
+      outputs:["Grounded answer with citations for general ops","Verbatim quote + citation for safety/clinical; low confidence → human"],
+      tierNote:"High on safety/clinical. No free generation on contraindications etc.; uncertain retrieval routes to a human. Safety gate never relaxes.",
+      cost:"€0–60/mo",effort:"~1–1.5 person-weeks + operator pilot",
+      eval:"100% of safety answers are verbatim-quoted-with-citation or escalated; no parametric fill-in",
+      deps:["Reads a curated corpus (not T1)","Freeze the safety topic set + corpus with the clinical lead first"]},
+};
+
+const EDGES = [
+  ["src_mtg","T2","read","reads"],
+  ["src_enr","T3","read","reads"],
+  ["src_partner","T12","feed","sends"],
+  ["src_news","T17","read","reads"],
+  ["src_corpus","T13","read","corpus"],
+  ["src_roi","T16","read","reads #6"],
+  ["T2","T1","write","CRM fields"],
+  ["T2","QUEUE","flag","uncertain"],
+  ["T3","T1","write","≥ threshold"],
+  ["T3","QUEUE","flag","< threshold"],
+  ["T15","T1","write","auto-fix"],
+  ["T1","T15","read","nightly scan"],
+  ["T15","QUEUE","flag","flags"],
+  ["T12","T1","write","usage records"],
+  ["T12","T5","feed","dashboards"],
+  ["T12","T10","feed","KPI reviews"],
+  ["T12","T16","feed","ROI validation"],
+  ["T1","T4","read","CRM context"],
+  ["T4","T1","write","logs sent"],
+  ["T6","T1","write","stage state"],
+  ["T6","T4","human","outbound (approved)"],
+  ["T10","T1","write","launch state"],
+  ["T1","T5","read","reads only"],
+  ["T17","T1","read","cross-check partners"],
+];
+
+const COLS = [
+  {title:"Sources",ids:["src_mtg","src_enr","src_partner","src_news","src_roi","src_corpus"]},
+  {title:"Capture & inflow",ids:["T2","T3","T12","T17"]},
+  {title:"Single source of truth",ids:["T1","T15","QUEUE"]},
+  {title:"Orchestration",ids:["T6","T10"]},
+  {title:"Client-facing",ids:["T4","T16"]},
+  {title:"Read & intelligence",ids:["T5","T13"]},
+];
+
+const TIERLABEL={low:"Low · autonomous",med:"Medium · AI drafts, human approves",high:"High · human-led",hub:"Foundation",ext:"External input",queue:"Shared queue"};
+const TIERBADGE={low:"b-low",med:"b-med",high:"b-high",hub:"b-low",ext:"b-ext",queue:"b-ext"};
+const EDGECOLOR={write:"var(--edge-write)",read:"var(--edge-read)",feed:"var(--edge-feed)",human:"var(--edge-human)",flag:"var(--edge-flag)"};
+
+// ---------- RENDER NODES ----------
+const colsEl=document.getElementById("cols");
+COLS.forEach(c=>{
+  const col=document.createElement("div");col.className="col";
+  col.innerHTML=`<h2>${c.title}</h2>`;
+  c.ids.forEach(id=>{
+    const n=NODES[id];
+    const el=document.createElement("div");
+    el.className="node "+n.tier;el.id="node-"+id;el.dataset.id=id;
+    let badges="";
+    if(n.tier!=="ext"&&n.tier!=="queue"&&n.tier!=="hub")
+      badges+=`<span class="badge ${TIERBADGE[n.tier]}">${n.tier.toUpperCase()}</span>`;
+    if(n.tier==="hub")badges+=`<span class="badge b-low">FOUNDATION</span>`;
+    if(id==="T4"||id==="T16")badges+=`<span class="badge b-gate">HUMAN GATE</span>`;
+    if(n.phase) n.phase.forEach(p=>badges+=`<span class="badge b-ext">${p.toUpperCase()}</span>`);
+    let chips="";
+    if(id==="T1")chips=`<div class="chips"><span class="chip">Folk</span><span class="chip">Notion</span><span class="chip">n8n</span><span class="chip">sync ledger</span></div>`;
+    el.innerHTML=`<div class="tid">${n.tid}</div><div class="nm">${n.name}</div>
+      <div class="role">${n.role}</div>${chips}<div class="badges">${badges}</div>`;
+    el.addEventListener("click",()=>openDrawer(id));
+    el.addEventListener("mouseenter",()=>highlight(id));
+    el.addEventListener("mouseleave",clearHighlight);
+    col.appendChild(el);
+  });
+  colsEl.appendChild(col);
+});
+
+// ---------- DRAW EDGES ----------
+const svg=document.getElementById("edges");
+function anchor(rect,host,side){
+  return {x:rect.left-host.left+(side==="r"?rect.width:0),y:rect.top-host.top+rect.height/2};
+}
+function drawEdges(){
+  const host=document.getElementById("canvas").getBoundingClientRect();
+  svg.setAttribute("width",host.width);svg.setAttribute("height",host.height);
+  svg.innerHTML=`<defs>
+    ${Object.entries(EDGECOLOR).map(([k,v])=>`<marker id="ar-${k}" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="${v}"/></marker>`).join("")}
+  </defs>`;
+  EDGES.forEach((e,i)=>{
+    const [from,to,kind,label]=e;
+    const a=document.getElementById("node-"+from),b=document.getElementById("node-"+to);
+    if(!a||!b)return;
+    const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+    const fromRight=rb.left>=ra.left;
+    const p1=anchor(ra,host,fromRight?"r":"l");
+    const p2=anchor(rb,host,fromRight?"l":"r");
+    const dx=Math.max(40,Math.abs(p2.x-p1.x)*0.45);
+    const c1x=p1.x+(fromRight?dx:-dx),c2x=p2.x+(fromRight?-dx:dx);
+    const col=EDGECOLOR[kind];
+    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",`M${p1.x},${p1.y} C${c1x},${p1.y} ${c2x},${p2.y} ${p2.x},${p2.y}`);
+    path.setAttribute("fill","none");path.setAttribute("stroke",col);
+    path.setAttribute("stroke-width","2");path.setAttribute("opacity","0.55");
+    if(kind==="read")path.setAttribute("stroke-dasharray","5,4");
+    path.setAttribute("marker-end",`url(#ar-${kind})`);
+    path.dataset.from=from;path.dataset.to=to;path.classList.add("edge");
+    svg.appendChild(path);
+    // label
+    const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+    const tw=label.length*5.4+8;
+    const bg=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    bg.setAttribute("x",mx-tw/2);bg.setAttribute("y",my-8);bg.setAttribute("width",tw);bg.setAttribute("height",14);
+    bg.setAttribute("rx",4);bg.setAttribute("class","edge-label-bg");bg.dataset.from=from;bg.dataset.to=to;bg.classList.add("elab");
+    const t=document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("x",mx);t.setAttribute("y",my+2);t.setAttribute("text-anchor","middle");
+    t.setAttribute("class","edge-label");t.textContent=label;t.dataset.from=from;t.dataset.to=to;t.classList.add("elab");
+    svg.appendChild(bg);svg.appendChild(t);
+  });
+}
+window.addEventListener("load",drawEdges);
+window.addEventListener("resize",()=>setTimeout(drawEdges,80));
+
+// ---------- HIGHLIGHT ----------
+function highlight(id){
+  const connected=new Set([id]);
+  EDGES.forEach(([f,t])=>{if(f===id)connected.add(t);if(t===id)connected.add(f);});
+  document.querySelectorAll(".node").forEach(n=>{
+    if(connected.has(n.dataset.id)){n.classList.remove("dim");if(n.dataset.id===id)n.classList.add("hl");}
+    else n.classList.add("dim");
+  });
+  svg.querySelectorAll(".edge").forEach(p=>{
+    const on=p.dataset.from===id||p.dataset.to===id;
+    p.setAttribute("opacity",on?"0.95":"0.07");p.setAttribute("stroke-width",on?"3":"2");
+  });
+  svg.querySelectorAll(".elab").forEach(l=>{l.style.opacity=(l.dataset.from===id||l.dataset.to===id)?"1":"0.08";});
+}
+function clearHighlight(){
+  document.querySelectorAll(".node").forEach(n=>n.classList.remove("dim","hl"));
+  svg.querySelectorAll(".edge").forEach(p=>{p.setAttribute("opacity","0.55");p.setAttribute("stroke-width","2");});
+  svg.querySelectorAll(".elab").forEach(l=>l.style.opacity="1");
+}
+
+// ---------- FILTERS ----------
+document.getElementById("filters").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  document.querySelectorAll("#filters button").forEach(b=>b.classList.remove("active"));
+  e.target.classList.add("active");
+  const f=e.target.dataset.f;
+  document.querySelectorAll(".node").forEach(n=>{
+    const node=NODES[n.dataset.id];n.style.display="";
+    if(f==="all")return;
+    let show=false;
+    if(["p1","p2","p3"].includes(f)) show=node.phase&&node.phase.includes(f);
+    else show=node.tier===f;
+    // always keep T1 + sources visible as anchors
+    if(node.tier==="hub"||node.kind==="src"||node.kind==="queue")show=true;
+    n.style.display=show?"":"none";
+  });
+  setTimeout(drawEdges,40);
+});
+
+// ---------- DRAWER ----------
+function row(k,v){return `<div class="k">${k}</div>${v}`;}
+function list(arr){return "<ul>"+arr.map(x=>`<li>${x}</li>`).join("")+"</ul>";}
+function openDrawer(id){
+  const n=NODES[id];
+  document.getElementById("d-tid").textContent=n.tid+(n.phase?"  ·  "+n.phase.map(p=>p.toUpperCase()).join(" "):"");
+  document.getElementById("d-name").textContent=n.name;
+  let meta=`<span class="pill" style="border-color:transparent;background:${n.tier==='low'?'#dcfce7':n.tier==='med'?'#fef3c7':n.tier==='high'?'#fee2e2':'#e2e8f0'}">${TIERLABEL[n.tier]||""}</span>`;
+  if(n.cost)meta+=`<span class="pill">${n.cost}</span>`;
+  if(n.effort)meta+=`<span class="pill">${n.effort}</span>`;
+  document.getElementById("d-meta").innerHTML=meta;
+  let b="";
+  if(n.role)b+=row("What it is",`<div>${n.role}</div>`);
+  if(n.trigger)b+=row("Trigger",`<div>${n.trigger}</div>`);
+  if(n.inputs)b+=row("Inputs",list(n.inputs));
+  if(n.outputs)b+=row("Outputs",list(n.outputs));
+  if(n.deps)b+=row("Connections & dependencies",list(n.deps));
+  if(n.eval)b+=row("Acceptance gate",`<div>${n.eval}</div>`);
+  if(n.tierNote)b+=row("Governance",`<div>${n.tierNote}</div>`);
+  document.getElementById("d-body").innerHTML=b;
+  document.getElementById("drawer").classList.add("open");
+  highlight(id);
+}
+function closeDrawer(){document.getElementById("drawer").classList.remove("open");clearHighlight();}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+
+// ---------- FOOTER ----------
+document.getElementById("foot").innerHTML=
+ `<b>Reading the map.</b> Left to right: external inputs → capture tools → the T1 source of truth (guarded by T15) → orchestration → client-facing output → read/intelligence. "Writes" go through T1 only; "reads" never mutate it; "feeds" carry partner usage data downstream; "flags" route exceptions to the shared human queue; "human gate" steps never send autonomously. `+
+ `Synthesized from the T1–T17 build guides in <code>AI/build_guides/</code> (verified 2026-06-03). T7 (follow-ups) and T11 (inbound triage) were folded into T4; T8 (intelligence layer) is a future phase fed by T12. Figures are low–high ranges per the guides and must be re-verified each build cycle.`;
+</script>
+</body>
+</html>
