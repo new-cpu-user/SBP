@@ -107,22 +107,6 @@
 </header>
 
 <div class="bar">
-  <div class="group" id="filters">
-    <span class="lab">Show</span>
-    <button data-f="all" class="active">All</button>
-    <button data-f="p1">Phase 1</button>
-    <button data-f="p2">Phase 2</button>
-    <button data-f="p3">Phase 3</button>
-    <button data-f="low">Low</button>
-    <button data-f="med">Medium</button>
-    <button data-f="high">High</button>
-  </div>
-  <div class="group" id="tracemode">
-    <span class="lab">Trace</span>
-    <button data-t="both" class="active">Both</button>
-    <button data-t="up">Feeds in</button>
-    <button data-t="down">Feeds out</button>
-  </div>
   <div class="group" id="viewmode">
     <span class="lab">View</span>
     <button data-v="fit" class="active">Fit screen</button>
@@ -456,25 +440,7 @@ function clearFocus(){
   svg.querySelectorAll(".elab").forEach(l=>l.style.opacity="0");
 }
 
-// ---------- FILTERS / TRACE / VIEW ----------
-document.getElementById("filters").addEventListener("click",e=>{
-  if(e.target.tagName!=="BUTTON")return;
-  [...document.querySelectorAll("#filters button")].forEach(b=>b.classList.remove("active"));
-  e.target.classList.add("active");const f=e.target.dataset.f;
-  document.querySelectorAll(".node").forEach(n=>{
-    const node=NODES[n.dataset.id];n.style.display="";
-    if(f==="all")return;let show=false;
-    if(["p1","p2","p3"].includes(f))show=node.phase&&node.phase.includes(f);else show=node.tier===f;
-    if(node.tier==="hub"||node.kind==="src"||node.kind==="queue")show=true;
-    n.style.display=show?"":"none";
-  });
-  setTimeout(fit,40);
-});
-document.getElementById("tracemode").addEventListener("click",e=>{
-  if(e.target.tagName!=="BUTTON")return;
-  [...document.querySelectorAll("#tracemode button")].forEach(b=>b.classList.remove("active"));
-  e.target.classList.add("active");traceMode=e.target.dataset.t;
-});
+// ---------- VIEW ----------
 document.getElementById("viewmode").addEventListener("click",e=>{
   if(e.target.tagName!=="BUTTON")return;
   [...document.querySelectorAll("#viewmode button")].forEach(b=>b.classList.remove("active"));
