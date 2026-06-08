@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=1180, initial-scale=1, viewport-fit=cover"/>
 <title>AudioVitality — AI Automation System Map</title>
 <style>
   :root{
@@ -16,42 +16,44 @@
   html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     -webkit-text-size-adjust:100%;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;}
-  header.top{padding:22px 30px 12px;}
-  header.top h1{margin:0;font-size:22px;letter-spacing:-.2px;}
-  header.top p{margin:6px 0 0;color:var(--muted);font-size:13.5px;max-width:1040px;line-height:1.5;}
+  header.top{padding:14px 22px 8px;}
+  header.top h1{margin:0;font-size:20px;letter-spacing:-.2px;}
+  header.top p{margin:5px 0 0;color:var(--muted);font-size:12.5px;max-width:1100px;line-height:1.45;}
   header.top b{color:var(--ink);}
 
-  .bar{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:4px 30px 10px;}
+  .bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:2px 22px 8px;}
   .group{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
-  .group .lab{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-right:2px;}
+  .group .lab{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-right:2px;}
   .bar button{border:1px solid var(--line);background:#fff;color:var(--ink);
-    padding:6px 12px;border-radius:999px;font-size:12.5px;cursor:pointer;transition:.15s;}
+    padding:5px 11px;border-radius:999px;font-size:12px;cursor:pointer;transition:.15s;}
   .bar button:hover{border-color:#94a3b8;}
   .bar button.active{background:var(--ink);color:#fff;border-color:var(--ink);}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto;}
-  .legend .li{display:flex;align-items:center;gap:6px;}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-left:auto;}
+  .legend .li{display:flex;align-items:center;gap:5px;}
   .dot{width:11px;height:11px;border-radius:3px;display:inline-block;}
   .lstroke{width:22px;height:0;border-top:3px solid;display:inline-block;}
-  .hint{padding:2px 30px 0;color:var(--muted);font-size:12px;}
+  .hint{padding:0 22px 2px;color:var(--muted);font-size:11.5px;}
   .hint b{color:var(--ink);}
 
-  .stage{position:relative;overflow:auto;padding:8px 30px 36px;}
-  #canvas{position:relative;min-width:1580px;}
+  .stage{position:relative;overflow:auto;padding:6px 14px 16px;display:flex;justify-content:center;align-items:flex-start;
+    -webkit-overflow-scrolling:touch;}
+  #fitwrap{position:relative;}
+  #canvas{position:relative;width:1180px;transform-origin:top left;}
   #edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}
-  .cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,1fr);gap:48px;}
-  .col h2{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);
-    margin:0 0 14px;font-weight:700;border-bottom:1px solid var(--line);padding-bottom:7px;}
-  .col{display:flex;flex-direction:column;gap:22px;}
+  .cols{position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,1fr);gap:24px;}
+  .col h2{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    margin:0 0 10px;font-weight:700;border-bottom:1px solid var(--line);padding-bottom:6px;}
+  .col{display:flex;flex-direction:column;gap:14px;}
 
   .node{position:relative;background:var(--panel);border:1px solid var(--line);
-    border-left:5px solid var(--ext);border-radius:12px;padding:12px 13px 13px;
+    border-left:5px solid var(--ext);border-radius:11px;padding:9px 10px 10px;
     box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,box-shadow .12s,opacity .18s,filter .18s;}
   .node:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,23,42,.15);}
-  .node .tid{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--muted);}
-  .node .nm{font-size:14px;font-weight:700;line-height:1.25;margin-top:2px;}
-  .node .role{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.38;}
-  .node .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px;}
-  .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.3px;}
+  .node .tid{font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--muted);}
+  .node .nm{font-size:12.5px;font-weight:700;line-height:1.22;margin-top:2px;}
+  .node .role{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.32;}
+  .node .badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px;}
+  .badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;letter-spacing:.3px;}
   .b-low{background:#dcfce7;color:#15803d;} .b-med{background:#fef3c7;color:#b45309;}
   .b-high{background:#fee2e2;color:#b91c1c;} .b-ext{background:#e2e8f0;color:#475569;}
   .b-gate{background:#ffedd5;color:#c2410c;}
@@ -61,28 +63,28 @@
   .node.hub .tid,.node.hub .role{color:#cbd5e1;} .node.hub .nm{color:#fff;}
   .node.queue{border-left-color:var(--queue);background:#ecfeff;}
   .node.src{background:#f8fafc;border-style:dashed;}
-  .node.src .nm{font-size:13px;}
-  .chips{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap;}
-  .chip{font-size:10px;background:rgba(255,255,255,.14);color:#e2e8f0;border:1px solid rgba(255,255,255,.25);
-    padding:2px 7px;border-radius:6px;}
+  .node.src .nm{font-size:11.5px;}
+  .chips{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap;}
+  .chip{font-size:9px;background:rgba(255,255,255,.14);color:#e2e8f0;border:1px solid rgba(255,255,255,.25);
+    padding:2px 6px;border-radius:6px;}
   .node.dim{opacity:.14;filter:saturate(.3);}
   .node.up{box-shadow:0 0 0 2px var(--edge-feed),0 10px 26px rgba(15,23,42,.16);}
   .node.down{box-shadow:0 0 0 2px var(--edge-write),0 10px 26px rgba(15,23,42,.16);}
   .node.focus{box-shadow:0 0 0 3px var(--hubaccent),0 12px 30px rgba(15,23,42,.2);}
 
-  #drawer{position:fixed;top:0;right:0;height:100%;width:400px;max-width:94vw;background:#fff;
+  #drawer{position:fixed;top:0;right:0;height:100%;width:380px;max-width:94vw;background:#fff;
     box-shadow:-12px 0 40px rgba(15,23,42,.18);transform:translateX(100%);transition:transform .25s;
     z-index:50;display:flex;flex-direction:column;}
   #drawer.open{transform:translateX(0);}
-  #drawer .dh{padding:18px 20px 14px;border-bottom:1px solid var(--line);position:relative;}
+  #drawer .dh{padding:16px 18px 12px;border-bottom:1px solid var(--line);position:relative;}
   #drawer .dh .tid{font-size:12px;font-weight:800;color:var(--muted);}
-  #drawer .dh h3{margin:3px 0 0;font-size:18px;padding-right:30px;}
-  #drawer .db{padding:16px 20px;overflow:auto;font-size:13px;line-height:1.55;}
-  #drawer .db .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
-    font-weight:700;margin:16px 0 5px;}
+  #drawer .dh h3{margin:3px 0 0;font-size:17px;padding-right:30px;}
+  #drawer .db{padding:14px 18px;overflow:auto;font-size:12.5px;line-height:1.5;}
+  #drawer .db .k{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    font-weight:700;margin:14px 0 4px;}
   #drawer .db .k:first-child{margin-top:0;}
   #drawer .db ul{margin:4px 0 0;padding-left:18px;} #drawer .db li{margin:3px 0;}
-  #drawer .tree{margin:4px 0 0;padding-left:6px;font-size:12.5px;}
+  #drawer .tree{margin:4px 0 0;padding-left:6px;font-size:12px;}
   #drawer .tree ul{list-style:none;margin:0;padding-left:16px;border-left:1px dashed var(--line);}
   #drawer .tree li{margin:4px 0;position:relative;}
   #drawer .tree .tnode{display:inline-flex;gap:6px;align-items:center;}
@@ -90,9 +92,9 @@
   #drawer .tree .ekind{font-size:10px;color:#94a3b8;}
   #drawer .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   #drawer .pill{font-size:11px;background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:3px 9px;}
-  #drawer .close{position:absolute;top:16px;right:16px;border:none;background:#f1f5f9;border-radius:8px;
-    width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted);}
-  .foot{padding:14px 30px 30px;color:var(--muted);font-size:11.5px;line-height:1.5;border-top:1px solid var(--line);margin-top:8px;}
+  #drawer .close{position:absolute;top:14px;right:14px;border:none;background:#f1f5f9;border-radius:8px;
+    width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--muted);}
+  .foot{padding:10px 22px 22px;color:var(--muted);font-size:11px;line-height:1.45;border-top:1px solid var(--line);margin-top:6px;}
   .foot code{background:#eef2f7;padding:1px 5px;border-radius:4px;}
   .edge-label{font:600 10.5px -apple-system,Segoe UI,sans-serif;fill:#334155;}
   .edge-label-bg{fill:#ffffff;}
@@ -116,10 +118,15 @@
     <button data-f="high">High</button>
   </div>
   <div class="group" id="tracemode">
-    <span class="lab">On focus, trace</span>
-    <button data-t="both" class="active">Upstream + downstream</button>
-    <button data-t="up">Upstream only</button>
-    <button data-t="down">Downstream only</button>
+    <span class="lab">Trace</span>
+    <button data-t="both" class="active">Both</button>
+    <button data-t="up">Feeds in</button>
+    <button data-t="down">Feeds out</button>
+  </div>
+  <div class="group" id="viewmode">
+    <span class="lab">View</span>
+    <button data-v="fit" class="active">Fit screen</button>
+    <button data-v="full">100%</button>
   </div>
   <div class="legend">
     <span class="li"><span class="dot" style="background:var(--low)"></span>Low</span>
@@ -133,12 +140,14 @@
     <span class="li"><span class="lstroke" style="border-color:var(--edge-human)"></span>human gate</span>
   </div>
 </div>
-<div class="hint"><b>Hover or click any tool</b> to light up its full chain — everything that feeds into it (upstream) and everything it feeds (downstream). Labels appear on the active arrows. n8n runs every workflow; Folk + Notion are the stores, unified by T1.</div>
+<div class="hint"><b>Tap or hover a tool</b> to highlight its direct links — one step in (what feeds it) and one step out (what it feeds). <b>Tap</b> opens the panel with the full upstream chain in text. n8n runs every workflow; Folk + Notion are the stores, unified by T1.</div>
 
 <div class="stage">
-  <div id="canvas">
-    <svg id="edges"></svg>
-    <div class="cols" id="cols"></div>
+  <div id="fitwrap">
+    <div id="canvas">
+      <svg id="edges"></svg>
+      <div class="cols" id="cols"></div>
+    </div>
   </div>
 </div>
 
@@ -160,8 +169,8 @@ const NODES = {
   src_partner:{col:0,tier:"ext",tid:"INPUT",name:"Partner systems",role:"700 studios — PMS API · AV portal/form · monthly CSV",kind:"src"},
   src_news:{col:0,tier:"ext",tid:"INPUT",name:"News & web",role:"Google Alerts RSS · news API · Firecrawl",kind:"src"},
   src_roi:{col:0,tier:"ext",tid:"INPUT",name:"ROI Model (Deliverable #6)",role:"Signed dual-sided partner ROI workbook",kind:"src"},
-  src_corpus:{col:0,tier:"ext",tid:"INPUT",name:"Knowledge corpus",role:"AV Academy modules · protocol menu · studio specs · ops SOPs",kind:"src"},
   src_odoo:{col:0,tier:"ext",tid:"INPUT",name:"Odoo (ERP)",role:"Finance, invoicing & royalty actuals (read-only)",kind:"src"},
+  src_corpus:{col:0,tier:"ext",tid:"INPUT",name:"Knowledge corpus",role:"AV Academy modules · protocol menu · studio specs · ops SOPs",kind:"src"},
   src_matrix:{col:0,tier:"ext",tid:"INPUT",name:"Partner Identification Matrix",role:"Deliverable #2 longlist + qualitative criteria + web research",kind:"src"},
 
   T2:{col:1,tier:"med",tid:"T2",name:"Meeting → CRM auto-logging",role:"Transcript → structured CRM fields via LLM",
@@ -330,14 +339,14 @@ COLS.forEach(c=>{
   colsEl.appendChild(col);
 });
 
-// ---------- EDGE GEOMETRY ----------
+// ---------- EDGE GEOMETRY (scale-aware) ----------
 const svg=document.getElementById("edges");
 let geom=[]; // per-edge computed anchors
 const colOf=id=>NODES[id].col;
 function buildGeom(){
+  const s=mapScale||1;
   const host=document.getElementById("canvas").getBoundingClientRect();
-  const R={};Object.keys(NODES).forEach(id=>{const e=document.getElementById("node-"+id);if(e&&e.style.display!=="none"){const r=e.getBoundingClientRect();R[id]={x:r.left-host.left,y:r.top-host.top,w:r.width,h:r.height};}});
-  // assign side + slot per endpoint
+  const R={};Object.keys(NODES).forEach(id=>{const e=document.getElementById("node-"+id);if(e&&e.style.display!=="none"){const r=e.getBoundingClientRect();R[id]={x:(r.left-host.left)/s,y:(r.top-host.top)/s,w:r.width/s,h:r.height/s};}});
   const slots={}; // key node|side -> array of {ei, otherY}
   const info=EDGES.map((e,ei)=>{
     const [f,t,kind,label]=e;if(!R[f]||!R[t])return null;
@@ -355,28 +364,28 @@ function buildGeom(){
   const ay={}; // ei|end -> y
   Object.entries(slots).forEach(([key,arr])=>{
     const id=key.split("|")[0];const r=R[id];arr.sort((a,b)=>a.o-b.o);
-    const pad=14,usable=r.h-2*pad;
-    arr.forEach((s,i)=>{ay[s.ei+"|"+s.end]=r.y+pad+(usable*(i+1)/(arr.length+1));});
+    const pad=12,usable=r.h-2*pad;
+    arr.forEach((s2,i)=>{ay[s2.ei+"|"+s2.end]=r.y+pad+(usable*(i+1)/(arr.length+1));});
   });
-  // vertical offset counter per column-pair
   const vcount={};
   geom=info.map(m=>{if(!m)return null;const rf=R[m.f],rt=R[m.t];
     if(m.vertical){
       const key=rf.x;const idx=(vcount[key]=vcount[key]||0);vcount[key]++;
-      const sx=rf.x+rf.w, off=24+idx*18;
+      const sx=rf.x+rf.w, off=22+idx*16;
       const y1=rf.y+rf.h/2,y2=rt.y+rt.h/2,cxr=sx+off;
       return {...m,p:`M${sx},${y1} C${cxr},${y1} ${cxr},${y2} ${sx},${y2}`,mx:cxr,my:(y1+y2)/2};
     }
     const x1=m.fSide==="r"?rf.x+rf.w:rf.x, x2=m.tSide==="l"?rt.x:rt.x+rt.w;
     const y1=ay[m.ei+"|f"]??(rf.y+rf.h/2), y2=ay[m.ei+"|t"]??(rt.y+rt.h/2);
-    const dx=Math.max(46,Math.abs(x2-x1)*0.42);
+    const dx=Math.max(40,Math.abs(x2-x1)*0.42);
     const c1=x1+(m.fSide==="r"?dx:-dx), c2=x2+(m.tSide==="l"?-dx:dx);
     return {...m,p:`M${x1},${y1} C${c1},${y1} ${c2},${y2} ${x2},${y2}`,mx:(x1+x2)/2,my:(y1+y2)/2};
   }).filter(Boolean);
 }
 function drawEdges(){
+  const s=mapScale||1;
   const host=document.getElementById("canvas").getBoundingClientRect();
-  svg.setAttribute("width",host.width);svg.setAttribute("height",host.height);
+  svg.setAttribute("width",host.width/s);svg.setAttribute("height",host.height/s);
   buildGeom();
   let defs=`<defs>`;
   Object.entries(EDGEHEX).forEach(([k,v])=>{defs+=`<marker id="ar-${k}" markerWidth="10" markerHeight="10" refX="7.5" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 Z" fill="${v}"/></marker>`;});
@@ -384,9 +393,8 @@ function drawEdges(){
   let body="";
   geom.forEach(m=>{
     const dash=m.kind==="read"?' stroke-dasharray="6,5"':'';
-    body+=`<path id="edge-${m.ei}" data-from="${m.f}" data-to="${m.t}" d="${m.p}" fill="none" stroke="${EDGEHEX[m.kind]}" stroke-width="2" opacity="0.4"${dash} marker-end="url(#ar-${m.kind})" class="edge"/>`;
+    body+=`<path id="edge-${m.ei}" data-from="${m.f}" data-to="${m.t}" d="${m.p}" fill="none" stroke="${EDGEHEX[m.kind]}" stroke-width="2" opacity="0.32"${dash} marker-end="url(#ar-${m.kind})" class="edge"/>`;
   });
-  // labels (hidden until active)
   geom.forEach(m=>{
     const tw=m.label.length*5.8+10;
     body+=`<g id="lab-${m.ei}" data-from="${m.f}" data-to="${m.t}" class="elab" style="opacity:0">
@@ -396,19 +404,37 @@ function drawEdges(){
   svg.innerHTML=defs+body;
 }
 function escapeXml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-window.addEventListener("load",drawEdges);
-window.addEventListener("resize",()=>setTimeout(drawEdges,80));
 
-// ---------- FOCUS / CHAIN TRACING ----------
+// ---------- FIT TO SCREEN (iPad Air 1180×820 default) ----------
+let mapScale=1, fitMode=true;
+function fit(){
+  const canvas=document.getElementById("canvas"), wrap=document.getElementById("fitwrap"), stage=document.querySelector(".stage");
+  canvas.style.transform="scale(1)";
+  const natW=canvas.offsetWidth, natH=canvas.offsetHeight;
+  const cs=getComputedStyle(stage);
+  const availW=stage.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  const availH=window.innerHeight-stage.getBoundingClientRect().top-parseFloat(cs.paddingBottom)-4;
+  let s=Math.min(availW/natW, availH/natH);
+  if(!isFinite(s)||s<=0)s=1;
+  mapScale = fitMode ? Math.min(s,1) : 1;
+  canvas.style.transform=`scale(${mapScale})`;
+  wrap.style.width=(natW*mapScale)+"px";
+  wrap.style.height=(natH*mapScale)+"px";
+  drawEdges();
+}
+window.addEventListener("load",fit);
+window.addEventListener("resize",()=>setTimeout(fit,80));
+
+// ---------- FOCUS / 1-HOP HIGHLIGHT ----------
 let pinned=false, traceMode="both";
 function chainSets(id){
-  const anc=ancestors(id), desc=descendants(id);
-  let up=traceMode==="down"?new Set():anc;
-  let down=traceMode==="up"?new Set():desc;
+  const up=new Set(traceMode==="down"?[]:IN[id]);   // direct parents (one step)
+  const down=new Set(traceMode==="up"?[]:OUT[id]);  // direct children (one step)
   return {up,down,all:new Set([id,...up,...down])};
 }
 function focusNode(id){
   const {up,down,all}=chainSets(id);
+  const showUp=traceMode!=="down", showDown=traceMode!=="up";
   document.querySelectorAll(".node").forEach(n=>{
     const nid=n.dataset.id;n.classList.remove("dim","up","down","focus");
     if(nid===id)n.classList.add("focus");
@@ -416,20 +442,21 @@ function focusNode(id){
     else n.classList.add("dim");
   });
   svg.querySelectorAll(".edge").forEach(p=>{
-    const on=all.has(p.dataset.from)&&all.has(p.dataset.to);
-    p.setAttribute("opacity",on?"0.95":"0.05");p.setAttribute("stroke-width",on?"3":"1.5");
+    const on=(showUp&&p.dataset.to===id)||(showDown&&p.dataset.from===id);
+    p.setAttribute("opacity",on?"0.95":"0.04");p.setAttribute("stroke-width",on?"3":"1.5");
   });
   svg.querySelectorAll(".elab").forEach(l=>{
-    l.style.opacity=(all.has(l.dataset.from)&&all.has(l.dataset.to))?"1":"0";
+    const on=(showUp&&l.dataset.to===id)||(showDown&&l.dataset.from===id);
+    l.style.opacity=on?"1":"0";
   });
 }
 function clearFocus(){
   document.querySelectorAll(".node").forEach(n=>n.classList.remove("dim","up","down","focus"));
-  svg.querySelectorAll(".edge").forEach(p=>{p.setAttribute("opacity","0.4");p.setAttribute("stroke-width","2");});
+  svg.querySelectorAll(".edge").forEach(p=>{p.setAttribute("opacity","0.32");p.setAttribute("stroke-width","2");});
   svg.querySelectorAll(".elab").forEach(l=>l.style.opacity="0");
 }
 
-// ---------- FILTERS / TRACE MODE ----------
+// ---------- FILTERS / TRACE / VIEW ----------
 document.getElementById("filters").addEventListener("click",e=>{
   if(e.target.tagName!=="BUTTON")return;
   [...document.querySelectorAll("#filters button")].forEach(b=>b.classList.remove("active"));
@@ -441,12 +468,17 @@ document.getElementById("filters").addEventListener("click",e=>{
     if(node.tier==="hub"||node.kind==="src"||node.kind==="queue")show=true;
     n.style.display=show?"":"none";
   });
-  setTimeout(drawEdges,40);
+  setTimeout(fit,40);
 });
 document.getElementById("tracemode").addEventListener("click",e=>{
   if(e.target.tagName!=="BUTTON")return;
   [...document.querySelectorAll("#tracemode button")].forEach(b=>b.classList.remove("active"));
   e.target.classList.add("active");traceMode=e.target.dataset.t;
+});
+document.getElementById("viewmode").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  [...document.querySelectorAll("#viewmode button")].forEach(b=>b.classList.remove("active"));
+  e.target.classList.add("active");fitMode=e.target.dataset.v==="fit";fit();
 });
 
 // ---------- DRAWER ----------
@@ -475,10 +507,8 @@ function openDrawer(id){
   let b="";
   if(n.role)b+=row("What it is",`<div>${n.role}</div>`);
   if(n.trigger)b+=row("Trigger",`<div>${n.trigger}</div>`);
-  // upstream chain
   const tree=upstreamTree(id);
-  b+=row("Everything that feeds this (upstream chain)", tree?`<div class="tree">${tree}</div>`:`<div style="color:var(--muted)">Nothing upstream — this is an entry point.</div>`);
-  // downstream
+  b+=row("Everything that feeds this (full upstream chain)", tree?`<div class="tree">${tree}</div>`:`<div style="color:var(--muted)">Nothing upstream — this is an entry point.</div>`);
   const outs=OUT[id];
   b+=row("What this feeds (downstream)", outs.length?list(outs.map(o=>{const e=edgeBetween(id,o);return `<b>${NODES[o].tid}</b> ${NODES[o].name} <span style="color:var(--muted)">(${e?e[2]:""})</span>`;})):`<div style="color:var(--muted)">Terminal — feeds a human, not another tool.</div>`);
   if(n.inputs)b+=row("Inputs",list(n.inputs));
@@ -493,7 +523,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
 
 // ---------- FOOTER ----------
 document.getElementById("foot").innerHTML=
- `<b>How to read it.</b> Left → right: external inputs → capture tools → the T1 source of truth (guarded by T3) → orchestration → client-facing output → read/intelligence. Hover a node to trace its full lineage; click it for the upstream chain in text. `+
+ `<b>How to read it.</b> Left → right: external inputs → capture tools → the T1 source of truth (guarded by T3) → orchestration → client-facing output → read/intelligence. Tap a node to highlight its direct links; the panel shows the full upstream chain in text. `+
  `Synthesized from the T1–T13 build guides in <code>Drafts/AI/build_guides/</code> (verified 2026-06-04). Follow-ups and inbound triage were folded into T9; T13 (partner-fit ranking) bands the Partner Identification Matrix (Deliverable #2) and feeds T9 — its conversion-prediction (Phase B) is data-gated. Figures are low–high ranges per the guides; re-verify each build cycle.`;
 </script>
 </body>
