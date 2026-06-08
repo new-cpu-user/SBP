@@ -101,7 +101,7 @@
 <body>
 <header class="top">
   <h1>AudioVitality — AI Automation System Map</h1>
-  <p>The 12 automations (T1–T17), and how they feed each other. Everything writes through <b>T1</b>, the single source of truth (Folk ⇄ Notion, orchestrated in n8n); <b>T15</b> guards quality; exceptions go to a shared human queue.</p>
+  <p>The 13 automations (T1–T13), and how they feed each other. Everything writes through <b>T1</b>, the single source of truth (Folk ⇄ Notion, orchestrated in n8n); <b>T3</b> guards quality; exceptions go to a shared human queue.</p>
 </header>
 
 <div class="bar">
@@ -153,7 +153,7 @@
 </div>
 
 <script>
-// ---------- DATA (from the T1–T17 build guides, verified 2026-06-03) ----------
+// ---------- DATA (from the T1–T13 build guides, verified 2026-06-04) ----------
 const NODES = {
   src_mtg:{col:0,tier:"ext",tid:"INPUT",name:"Meetings & calls",role:"Notion AI Meeting Notes (Pattern A capture)",kind:"src"},
   src_enr:{col:0,tier:"ext",tid:"INPUT",name:"Enrichment provider",role:"Apollo / People Data Labs (firmographics + contacts)",kind:"src"},
@@ -161,6 +161,8 @@ const NODES = {
   src_news:{col:0,tier:"ext",tid:"INPUT",name:"News & web",role:"Google Alerts RSS · news API · Firecrawl",kind:"src"},
   src_roi:{col:0,tier:"ext",tid:"INPUT",name:"ROI Model (Deliverable #6)",role:"Signed dual-sided partner ROI workbook",kind:"src"},
   src_corpus:{col:0,tier:"ext",tid:"INPUT",name:"Knowledge corpus",role:"AV Academy modules · protocol menu · studio specs · ops SOPs",kind:"src"},
+  src_odoo:{col:0,tier:"ext",tid:"INPUT",name:"Odoo (ERP)",role:"Finance, invoicing & royalty actuals (read-only)",kind:"src"},
+  src_matrix:{col:0,tier:"ext",tid:"INPUT",name:"Partner Identification Matrix",role:"Deliverable #2 longlist + qualitative criteria + web research",kind:"src"},
 
   T2:{col:1,tier:"med",tid:"T2",name:"Meeting → CRM auto-logging",role:"Transcript → structured CRM fields via LLM",
       phase:["p1"],trigger:"New meeting transcript (Notion AI Notes / Fireflies)",
@@ -168,114 +170,125 @@ const NODES = {
       outputs:["Attendees, vertical, deal stage, objections, next action — written through T1","Uncertain extractions → human-review queue"],
       tierNote:"Medium→Low lifecycle: human-review queue at launch; relaxes to autonomous only once the eval gate passes.",
       cost:"€0–40/mo",effort:"3–4 person-days (on top of T1)",eval:"≥90% field accuracy on a labelled call set"},
-  T3:{col:1,tier:"low",tid:"T3",name:"Auto-refresh / enrichment",role:"Fills firmographics + contacts, scores match confidence",
+  T4:{col:1,tier:"low",tid:"T4",name:"Auto-refresh / enrichment",role:"Fills firmographics + contacts, scores match confidence",
       phase:["p1"],trigger:"New/changed company or partner record (Folk webhook) + scheduled refresh",
       inputs:["Partner/company record","Enrichment provider match"],
-      outputs:["Auto-write back ≥ confidence threshold (through T1)","Below threshold → T15 review queue"],
+      outputs:["Auto-write back ≥ confidence threshold (through T1)","Below threshold → T3 review queue"],
       tierNote:"Low only above the confidence threshold; never overwrites a human-entered value blindly.",
       cost:"€0–120/mo",effort:"~1 person-week",eval:"≥95% correct-entity attachment"},
-  T12:{col:1,tier:"med",tid:"T12",name:"Partner usage / session-data ingestion",role:"Receives usage data from the partner network",
+  T7:{col:1,tier:"med",tid:"T7",name:"Partner usage / session-data ingestion",role:"Receives usage data from the partner network",
       phase:["p1","p2"],trigger:"Partner sends usage data (API poll · portal submit · monthly CSV)",
       inputs:["Per-site session counts, utilisation, billable sessions","Optional pseudonymised outcome aggregates"],
-      outputs:["Canonical usage records → Notion (T1)","Feeds royalty reconciliation, T10 KPI reviews, T16 ROI validation, T5 dashboards"],
+      outputs:["Canonical usage records → Notion (T1)","Feeds royalty reconciliation, T6 KPI reviews, T12 ROI validation, T5 dashboards"],
       tierNote:"Medium — inbound third-party personal data. AV is the receiver, never the booking actor. Aggregates only, no client PII.",
       cost:"€0–25/mo",effort:"~1–1.5 person-weeks",eval:"100% of received records normalised + quality-guarded before reporting"},
-  T17:{col:1,tier:"med",tid:"T17",name:"Competitor watch",role:"Watches ~25 competitors, summarises quoting sources only",
+  T11:{col:1,tier:"med",tid:"T11",name:"Competitor watch",role:"Watches ~25 competitors, summarises quoting sources only",
       phase:["p2","p3"],trigger:"Scheduled gather (monthly cadence)",
       inputs:["Google Alerts RSS / news API / Firecrawl on named competitors"],
       outputs:["De-duplicated, source-quoted summaries → weekly human digest"],
       tierNote:"Quote-sources-only; human reviews the digest. Cross-checks Folk first so a partner isn't misflagged.",
-      cost:"€0–475/mo (provider-dominated)",effort:"3–5 person-days",eval:"No partner misclassified; every claim carries a source"},
+      cost:"€0–460/mo (provider-dominated)",effort:"3–5 person-days",eval:"No partner misclassified; every claim carries a source"},
 
   T1:{col:2,tier:"hub",tid:"T1",name:"Single source of truth",role:"Folk ⇄ Notion two-way sync (per-field ownership + sync ledger)",
       phase:["p1"],trigger:"Folk webhooks + Notion poll + nightly reconcile",
       inputs:["Every other tool writes here","Folk people/companies · Notion contacts/studios DBs"],
       outputs:["The canonical record every tool reads/writes through","Echo-loop-safe sync via the ledger"],
       tierNote:"Low / autonomous. The foundation — build first. Consolidate-then-sync, because Folk has no updatedAt field.",
-      cost:"€0–25/mo",effort:"~1–1.5 person-weeks",eval:"0 echo loops; per-field ownership upheld on a labelled reconcile set"},
-  T15:{col:2,tier:"low",tid:"T15",name:"Data-quality guard",role:"Scans T1: dedup · missing fields · ranges · staleness · anomalies",
+      cost:"€0/mo",effort:"~1–1.5 person-weeks",eval:"0 echo loops; per-field ownership upheld on a labelled reconcile set"},
+  T3:{col:2,tier:"low",tid:"T3",name:"Data-quality guard",role:"Scans T1: dedup · missing fields · ranges · staleness · anomalies",
       phase:["p1"],trigger:"Scheduled nightly scan over T1",
       inputs:["The full source of record (Folk + Notion via T1)"],
       outputs:["Auto-fix only an allowlisted safe class","Everything judgemental → the human-review queue"],
       tierNote:"Low. Never auto-merges on a fuzzy match — only byte-exact keys. Freeze the allowlist before it writes.",
-      cost:"€0–25/mo",effort:"~3–4 person-days (ships with T1)",eval:"Catches ≥95% of seeded bad records at <5% false positives"},
+      cost:"€0/mo",effort:"~3–4 person-days (ships with T1)",eval:"Catches ≥95% of seeded bad records at <5% false positives"},
   QUEUE:{col:2,tier:"queue",tid:"QUEUE",name:"Human-review & flag queue",role:"Where exceptions land for a person to clear",kind:"queue",
-      tierNote:"The shared exception queue. T2 uncertain extractions, T3 low-confidence matches and T15 flags all surface here — so the team checks exceptions, not everything."},
+      tierNote:"The shared exception queue. T2 uncertain extractions, T4 low-confidence matches and T3 flags all surface here — so the team checks exceptions, not everything."},
 
-  T6:{col:3,tier:"med",tid:"T6",name:"Partner onboarding orchestration",role:"State machine over the intake → activation journey",
+  T10:{col:3,tier:"med",tid:"T10",name:"Partner onboarding orchestration",role:"State machine over the intake → activation journey",
       phase:["p2"],trigger:"New partner (intake form / Folk deal)",
       inputs:["The agreed onboarding process (stages, tasks, owners, exit criteria)"],
-      outputs:["Creates tasks + owners + reminders in Notion","Gates each stage; outbound steps go through T4"],
-      tierNote:"Medium. Internal steps auto; every outbound (partner email, contract) is human-approved via T4.",
-      cost:"€0–25/mo",effort:"~1–1.5 person-weeks",eval:"Every partner's stage queryable; no stage advances before exit criteria met"},
-  T10:{col:3,tier:"med",tid:"T10",name:"Studio-launch runbook",role:"Drives a studio from site-identified to launched & reviewed",
+      outputs:["Creates tasks + owners + reminders in Notion","Gates each stage; outbound steps go through T9"],
+      tierNote:"Medium. Internal steps auto; every outbound (partner email, contract) is human-approved via T9.",
+      cost:"€0–7/mo",effort:"~1–1.5 person-weeks",eval:"Every partner's stage queryable; no stage advances before exit criteria met"},
+  T6:{col:3,tier:"med",tid:"T6",name:"Studio-launch runbook",role:"Drives a studio from site-identified to launched & reviewed",
       phase:["p1","p2"],trigger:"New launch instance (site identified)",
-      inputs:["Signed Deliverable #5 config: 7-phase × 4-pillar matrix, gates, owners, KPIs","T12 usage data for KPI reviews"],
+      inputs:["Signed Deliverable #5 config: 7-phase × 4-pillar matrix, gates, owners, KPIs","T7 usage data for KPI reviews"],
       outputs:["Per-phase tasks, owners, reminders, sign-off gates in T1","M3/M6/M12 KPI reviews"],
       tierNote:"Human sign-off gate at each phase (incl. regulatory hard-stops for Tinnitus). Config-driven from the signed #5.",
       cost:"€0–25/mo",effort:"~1.5–2 person-weeks + a live pilot",eval:"A pilot launch runs end-to-end through every gate with no manual workaround"},
 
-  T4:{col:4,tier:"med",tid:"T4",name:"Outreach & comms drafting",role:"Drafts outreach, follow-ups, inbound replies in AV's voice",
+  T9:{col:4,tier:"med",tid:"T9",name:"Outreach & comms drafting",role:"Drafts outreach, follow-ups, inbound replies in AV's voice",
       phase:["p2"],trigger:"New lead / stage change · follow-up due · inbound message",
       inputs:["CRM context from T1","Voice/templates skill"],
       outputs:["Drafts into a review queue — a human approves, then a separate step sends","Logs the sent message back through T1"],
       tierNote:"Medium. No autonomous send, ever. No pricing quotes, clinical claims or contractual commitments in an AI draft.",
       cost:"€0–22/mo",effort:"~3–5 person-days (on a live T1)",eval:"0 autonomous sends; human approves 100% of outbound"},
-  T16:{col:4,tier:"high",tid:"T16",name:"Partner ROI workbook",role:"Per-partner interactive Excel from the signed ROI model",
+  T12:{col:4,tier:"high",tid:"T12",name:"Partner ROI workbook",role:"Per-partner interactive Excel from the signed ROI model",
       phase:["p2","p3"],trigger:"On request for a prospective partner",
-      inputs:["Signed ROI Model #6 (read-only, via a partner-safe Partner_Output tab)","T12 usage data validates assumptions"],
+      inputs:["Signed ROI Model #6 (read-only, via a partner-safe Partner_Output tab)","Odoo actuals (read-only) for live numbers","T7 usage data validates assumptions"],
       outputs:["A partner-safe workbook the partner can tweak","Stops at a mandatory human gate before a human sends it"],
       tierNote:"High — most confidentiality-sensitive. Only partner-side, Olivier-cleared fields render. Human gate never relaxes.",
-      cost:"€0–10/mo",effort:"~1–1.5 person-weeks",eval:"0 internal-only fields ever render; every figure traces to the signed model version"},
+      cost:"€0–1/mo",effort:"~1–1.5 person-weeks",eval:"0 internal-only fields ever render; every figure traces to the signed model version"},
 
   T5:{col:5,tier:"low",tid:"T5",name:"Reporting & dashboards",role:"Pipeline / KPI / usage dashboards + scheduled digests",
       phase:["p1"],trigger:"Scheduled extract over T1",
-      inputs:["The single source of record (T1)","T12 usage data"],
+      inputs:["The single source of record (T1)","T7 usage data"],
       outputs:["Dashboards (Metabase over a Postgres mirror) + email digests"],
       tierNote:"Low. Reads, never writes the source of record. Lock metric definitions with the team.",
-      cost:"€0–95/mo",effort:"~1 person-week (after T1)",eval:"Every figure reconciles to T1; 'data as of' stamp on every view"},
-  T13:{col:5,tier:"high",tid:"T13",name:"Operator knowledge assistant (RAG)",role:"Cited Q&A over ops SOPs; quote-only on safety",
+      cost:"€0–90/mo",effort:"~1 person-week (after T1)",eval:"Every figure reconciles to T1; 'data as of' stamp on every view"},
+  T8:{col:5,tier:"high",tid:"T8",name:"Operator knowledge assistant (RAG)",role:"Cited Q&A over ops SOPs; quote-only on safety",
       phase:["p1","p2"],trigger:"Operator asks a question",
       inputs:["Curated corpus: Academy modules, protocol menu, studio specs, ops SOPs"],
       outputs:["Grounded answer with citations for general ops","Verbatim quote + citation for safety/clinical; low confidence → human"],
       tierNote:"High on safety/clinical. No free generation on contraindications; uncertain retrieval routes to a human.",
       cost:"€0–60/mo",effort:"~1–1.5 person-weeks + operator pilot",eval:"100% of safety answers verbatim-quoted-with-citation or escalated"},
+  T13:{col:5,tier:"med",tid:"T13",name:"Partner-fit ranking",role:"Fills & bands the Partner Identification Matrix (Deliverable #2)",
+      phase:["p3"],trigger:"Partner longlist (Deliverable #2 / Notion) — re-run as facts change",
+      inputs:["Partner longlist + the matrix's qualitative criteria","Web research + LLM, with a source cited per fact","Signals from T1 (Folk records) and T4 enrichment"],
+      outputs:["Qualitative facts + a source per fact, written into the matrix","A holistic Strong / Medium / Weak band + rationale — no numeric score","Chosen partners feed T9 outreach prioritisation"],
+      tierNote:"Medium — decision-support. AI fills, sources and bands; a human ratifies the Overall Fit and it never auto-acts. The matrix schema forbids numeric/weighted scoring. Phase B (conversion prediction) is data-gated.",
+      cost:"€0–20/mo",effort:"~1–1.5 person-weeks (Phase A)",eval:"Proposed band matches the team's holistic call on ≥80% of a labelled set; every fact sourced"},
 };
 
 const EDGES = [
   ["src_mtg","T2","read","reads"],
-  ["src_enr","T3","read","reads"],
-  ["src_partner","T12","feed","sends usage"],
-  ["src_news","T17","read","reads"],
-  ["src_corpus","T13","read","corpus"],
-  ["src_roi","T16","read","reads #6"],
+  ["src_enr","T4","read","reads"],
+  ["src_partner","T7","feed","sends usage"],
+  ["src_news","T11","read","reads"],
+  ["src_corpus","T8","read","corpus"],
+  ["src_roi","T12","read","reads #6"],
   ["T2","T1","write","CRM fields"],
   ["T2","QUEUE","flag","uncertain"],
-  ["T3","T1","write","≥ threshold"],
-  ["T3","QUEUE","flag","< threshold"],
-  ["T15","T1","write","auto-fix"],
-  ["T1","T15","read","nightly scan"],
-  ["T15","QUEUE","flag","flags"],
-  ["T12","T1","write","usage records"],
-  ["T12","T5","feed","dashboards"],
-  ["T12","T10","feed","KPI reviews"],
-  ["T12","T16","feed","ROI validation"],
-  ["T1","T4","read","CRM context"],
-  ["T4","T1","write","logs sent"],
-  ["T6","T1","write","stage state"],
-  ["T6","T4","human","outbound (approved)"],
-  ["T10","T1","write","launch state"],
+  ["T4","T1","write","≥ threshold"],
+  ["T4","QUEUE","flag","< threshold"],
+  ["T3","T1","write","auto-fix"],
+  ["T1","T3","read","nightly scan"],
+  ["T3","QUEUE","flag","flags"],
+  ["T7","T1","write","usage records"],
+  ["T7","T5","feed","dashboards"],
+  ["T7","T6","feed","KPI reviews"],
+  ["T7","T12","feed","ROI validation"],
+  ["T1","T9","read","CRM context"],
+  ["T9","T1","write","logs sent"],
+  ["T10","T1","write","stage state"],
+  ["T10","T9","human","outbound (approved)"],
+  ["T6","T1","write","launch state"],
   ["T1","T5","read","reads only"],
-  ["T17","T1","read","cross-check partners"],
+  ["T11","T1","read","cross-check partners"],
+  ["src_odoo","T12","read","actuals"],
+  ["src_matrix","T13","read","longlist"],
+  ["T1","T13","read","partner records"],
+  ["T4","T13","feed","enrichment signals"],
+  ["T13","T9","feed","chosen partners"],
 ];
 
 const COLS = [
-  {title:"Sources",ids:["src_mtg","src_enr","src_partner","src_news","src_roi","src_corpus"]},
-  {title:"Capture & inflow",ids:["T2","T3","T12","T17"]},
-  {title:"Single source of truth",ids:["T1","T15","QUEUE"]},
-  {title:"Orchestration",ids:["T6","T10"]},
-  {title:"Client-facing",ids:["T4","T16"]},
-  {title:"Read & intelligence",ids:["T5","T13"]},
+  {title:"Sources",ids:["src_mtg","src_enr","src_partner","src_news","src_roi","src_odoo","src_corpus","src_matrix"]},
+  {title:"Capture & inflow",ids:["T2","T4","T7","T11"]},
+  {title:"Single source of truth",ids:["T1","T3","QUEUE"]},
+  {title:"Orchestration",ids:["T10","T6"]},
+  {title:"Client-facing",ids:["T9","T12"]},
+  {title:"Read & intelligence",ids:["T5","T8","T13"]},
 ];
 
 const TIERLABEL={low:"Low · autonomous",med:"Medium · AI drafts, human approves",high:"High · human-led",hub:"Foundation",ext:"External input",queue:"Shared queue"};
@@ -303,10 +316,10 @@ COLS.forEach(c=>{
     let badges="";
     if(n.tier!=="ext"&&n.tier!=="queue"&&n.tier!=="hub")badges+=`<span class="badge ${TIERBADGE[n.tier]}">${n.tier.toUpperCase()}</span>`;
     if(n.tier==="hub")badges+=`<span class="badge b-low">FOUNDATION</span>`;
-    if(id==="T4"||id==="T16")badges+=`<span class="badge b-gate">HUMAN GATE</span>`;
+    if(id==="T9"||id==="T12")badges+=`<span class="badge b-gate">HUMAN GATE</span>`;
     if(n.phase)n.phase.forEach(p=>badges+=`<span class="badge b-ext">${p.toUpperCase()}</span>`);
     let chips="";
-    if(id==="T1")chips=`<div class="chips"><span class="chip">Folk</span><span class="chip">Notion</span><span class="chip">n8n</span><span class="chip">sync ledger</span></div>`;
+    if(id==="T1")chips=`<div class="chips"><span class="chip">Folk</span><span class="chip">Notion</span><span class="chip">n8n</span><span class="chip">Supabase ledger</span></div>`;
     el.innerHTML=`<div class="tid">${n.tid}</div><div class="nm">${n.name}</div>
       <div class="role">${n.role}</div>${chips}<div class="badges">${badges}</div>`;
     el.addEventListener("click",()=>openDrawer(id));
@@ -480,8 +493,8 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
 
 // ---------- FOOTER ----------
 document.getElementById("foot").innerHTML=
- `<b>How to read it.</b> Left → right: external inputs → capture tools → the T1 source of truth (guarded by T15) → orchestration → client-facing output → read/intelligence. Hover a node to trace its full lineage; click it for the upstream chain in text. `+
- `Synthesized from the T1–T17 build guides in <code>AI/build_guides/</code> (verified 2026-06-03). T7 (follow-ups) and T11 (inbound triage) were folded into T4; T8 (intelligence layer) is a future phase fed by T12. Figures are low–high ranges per the guides; re-verify each build cycle.`;
+ `<b>How to read it.</b> Left → right: external inputs → capture tools → the T1 source of truth (guarded by T3) → orchestration → client-facing output → read/intelligence. Hover a node to trace its full lineage; click it for the upstream chain in text. `+
+ `Synthesized from the T1–T13 build guides in <code>Drafts/AI/build_guides/</code> (verified 2026-06-04). Follow-ups and inbound triage were folded into T9; T13 (partner-fit ranking) bands the Partner Identification Matrix (Deliverable #2) and feeds T9 — its conversion-prediction (Phase B) is data-gated. Figures are low–high ranges per the guides; re-verify each build cycle.`;
 </script>
 </body>
 </html>
